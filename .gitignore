@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Local env and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and runtime artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+
+# Local coordination docs (agent-specific scratch docs)
+AGENT.md
+TASKS.md
