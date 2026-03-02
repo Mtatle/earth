@@ -1,6 +1,14 @@
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
+const CESIUM_RUNTIME_ENTRY = fileURLToPath(
+  new URL('../../node_modules/cesium/Build/CesiumUnminified/index.js', import.meta.url)
+);
+
 export default defineConfig({
+  resolve: {
+    alias: [{ find: 'cesium-runtime', replacement: CESIUM_RUNTIME_ENTRY }]
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

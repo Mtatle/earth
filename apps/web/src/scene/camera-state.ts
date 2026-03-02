@@ -1,4 +1,5 @@
 import type { Camera, Viewer } from 'cesium';
+import { loadCesium } from './load-cesium';
 
 const RAD_TO_DEG = 180 / Math.PI;
 const DEG_TO_RAD = Math.PI / 180;
@@ -121,7 +122,7 @@ export async function flyToCameraState(
   rawState: CameraState,
   options: FlyToOptions = {}
 ): Promise<void> {
-  const Cesium = await import('cesium');
+  const Cesium = await loadCesium();
   const state = sanitizeCameraState(rawState);
 
   await new Promise<void>((resolve) => {

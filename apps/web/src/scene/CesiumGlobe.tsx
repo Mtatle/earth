@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import type { Viewer } from 'cesium';
 import { CAMERA_PRESETS, captureCameraState, DEFAULT_BOOT_CAMERA, flyToCameraState, formatCameraState } from './camera-state';
+import { loadCesium } from './load-cesium';
 
 type GlobeStatus = 'loading' | 'ready' | 'error' | 'unsupported';
 
@@ -27,7 +28,7 @@ export function CesiumGlobe() {
       }
 
       try {
-        const Cesium = await import('cesium');
+        const Cesium = await loadCesium();
         if (canceled || !containerRef.current) {
           return;
         }
@@ -45,8 +46,7 @@ export function CesiumGlobe() {
           selectionIndicator: false,
           scene3DOnly: true,
           requestRenderMode: true,
-          maximumRenderTimeChange: Infinity,
-          terrainProvider: new Cesium.EllipsoidTerrainProvider()
+          maximumRenderTimeChange: Infinity
         });
 
         viewerRef.current = viewer;
