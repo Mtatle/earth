@@ -12,7 +12,7 @@ export default defineConfig({
     alias: [{ find: 'cesium-runtime', replacement: CESIUM_RUNTIME_ENTRY }]
   },
   optimizeDeps: {
-    exclude: ['cesium']
+    exclude: ['cesium', '@cesium/engine', '@cesium/widgets', 'cesium-runtime']
   },
   server: {
     port: 5173,
