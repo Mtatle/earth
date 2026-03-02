@@ -178,6 +178,67 @@ describe('useLayerManager', () => {
     expect(result.current.streamStatus).toBe('stale');
   });
 
+  it('tracks entity counts from contract stream events', () => {
+    const onStreamEvent = vi.fn();
+    const { result } = renderHook(() =>
+      useLayerManager({
+        streamUrl: 'http://localhost:4000/api/stream',
+        eventSourceFactory: (url) => new MockEventSource(url) as unknown as EventSource,
+        onStreamEvent
+      })
+    );
+
+    const source = getSource();
+
+    act(() => {
+      source.emit('entity_snapshot', {
+        event_type: 'entity_snapshot',
+        protocol_version: '1.0.0',
+        sent_at: '2026-03-02T00:00:00.000Z',
+        entities: [
+          {
+            entity_id: 'sat-25544',
+            entity_type: 'satellite',
+            position: { lat: 1, lon: 1 },
+            source: 'CelesTrak',
+            observed_at: '2026-03-02T00:00:00.000Z',
+            updated_at: '2026-03-02T00:00:00.000Z'
+          },
+          {
+            entity_id: 'flight-abc',
+            entity_type: 'flight',
+            position: { lat: 2, lon: 2 },
+            source: 'OpenSky',
+            observed_at: '2026-03-02T00:00:00.000Z',
+            updated_at: '2026-03-02T00:00:00.000Z'
+          }
+        ]
+      });
+    });
+
+    expect(result.current.layerCounts).toEqual({
+      satellites: 1,
+      flights: 1,
+      earthquakes: 0
+    });
+
+    act(() => {
+      source.emit('entity_delete', {
+        event_type: 'entity_delete',
+        protocol_version: '1.0.0',
+        sent_at: '2026-03-02T00:00:05.000Z',
+        entity_ids: ['flight-abc']
+      });
+    });
+
+    expect(result.current.layerCounts).toEqual({
+      satellites: 1,
+      flights: 0,
+      earthquakes: 0
+    });
+    expect(onStreamEvent).toHaveBeenCalledTimes(2);
+  });
+
   it('preserves error state after stale checks and closes stream on unmount', () => {
     const { result, unmount } = renderHook(() =>
       useLayerManager({

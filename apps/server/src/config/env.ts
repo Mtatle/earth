@@ -18,6 +18,13 @@ export interface RuntimeConfig {
   nodeEnv: 'development' | 'test' | 'production';
   port: number;
   strictAdapterKeys: boolean;
+  credentials: {
+    opensky: {
+      username: string;
+      password: string;
+    } | null;
+    adsbxApiKey: string | null;
+  };
   layers: Record<LayerKey, LayerRuntimeConfig>;
 }
 
@@ -177,6 +184,15 @@ function mapToRuntimeConfig(env: ParsedEnv): RuntimeConfig {
     nodeEnv: env.NODE_ENV,
     port: env.PORT,
     strictAdapterKeys: env.STRICT_ADAPTER_KEYS,
+    credentials: {
+      opensky: hasOpenSkyCredentials
+        ? {
+            username: env.OPENSKY_USERNAME!,
+            password: env.OPENSKY_PASSWORD!
+          }
+        : null,
+      adsbxApiKey: env.ADSBX_API_KEY ?? null
+    },
     layers: {
       satellites,
       flights,
