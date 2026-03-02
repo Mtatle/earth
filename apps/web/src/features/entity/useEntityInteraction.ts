@@ -1,5 +1,5 @@
 import type { EarthEntity, StreamEvent } from '@earthly/shared';
-import { useMemo, useReducer } from 'react';
+import { useCallback, useMemo, useReducer } from 'react';
 import { buildEntityDetails } from './format';
 import {
   createEntityInteractionState,
@@ -47,6 +47,30 @@ export function useEntityInteraction(options: UseEntityInteractionOptions = {}):
     return buildEntityDetails(selectedEntity, nowMs());
   }, [nowMs, selectedEntity]);
 
+  const applyStreamEvent = useCallback((event: StreamEvent) => {
+    dispatch({ type: 'apply_stream_event', event });
+  }, []);
+
+  const selectEntity = useCallback((entityId: EntityId | null) => {
+    dispatch({ type: 'select_entity', entityId });
+  }, []);
+
+  const selectPick = useCallback((pick: unknown) => {
+    dispatch({ type: 'select_pick', pick });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    dispatch({ type: 'clear_selection' });
+  }, []);
+
+  const toggleFollow = useCallback(() => {
+    dispatch({ type: 'toggle_follow' });
+  }, []);
+
+  const setFollowMode = useCallback((followMode: FollowMode) => {
+    dispatch({ type: 'set_follow', followMode });
+  }, []);
+
   return {
     entities: state.entities,
     entityIds: state.entityIds,
@@ -54,11 +78,11 @@ export function useEntityInteraction(options: UseEntityInteractionOptions = {}):
     selectedEntity,
     selectedEntityDetails,
     followMode: state.followMode,
-    applyStreamEvent: (event) => dispatch({ type: 'apply_stream_event', event }),
-    selectEntity: (entityId) => dispatch({ type: 'select_entity', entityId }),
-    selectPick: (pick) => dispatch({ type: 'select_pick', pick }),
-    clearSelection: () => dispatch({ type: 'clear_selection' }),
-    toggleFollow: () => dispatch({ type: 'toggle_follow' }),
-    setFollowMode: (followMode) => dispatch({ type: 'set_follow', followMode })
+    applyStreamEvent,
+    selectEntity,
+    selectPick,
+    clearSelection,
+    toggleFollow,
+    setFollowMode
   };
 }

@@ -1,9 +1,24 @@
+import { EntityDetailsDrawer, useEntityInteraction } from './features/entity';
 import { formatUpdatedAt, useLayerManager } from './features/layer-manager';
 import { CesiumGlobe } from './scene/CesiumGlobe';
 
 export function App() {
+  const {
+    entities,
+    entityIds,
+    selectedEntity,
+    selectedEntityId,
+    followMode,
+    applyStreamEvent,
+    selectEntity,
+    clearSelection,
+    toggleFollow
+  } = useEntityInteraction();
   const { layerView, streamStatus, lastHeartbeatAt, activeLayerCount, visibleEntityCount, toggleLayer } =
-    useLayerManager();
+    useLayerManager({
+      onStreamEvent: applyStreamEvent
+    });
+  const recentEntityIds = entityIds.slice(0, 14);
 
   return (
     <div className="shell">
@@ -51,9 +66,43 @@ export function App() {
           <CesiumGlobe />
         </section>
 
-        <aside className="panel">
+        <aside className="panel entity-panel">
           <h2>Entity</h2>
-          <p>Click interaction starts in T-022.</p>
+          <EntityDetailsDrawer
+            entity={selectedEntity}
+            followMode={followMode}
+            onToggleFollow={toggleFollow}
+            onClearSelection={clearSelection}
+          />
+
+          <div className="entity-list-block">
+            <p className="kicker">Live Feed</p>
+            {recentEntityIds.length > 0 ? (
+              <ul className="entity-select-list" aria-label="Live entities">
+                {recentEntityIds.map((entityId) => {
+                  const entity = entities[entityId];
+                  if (!entity) {
+                    return null;
+                  }
+
+                  return (
+                    <li key={entity.entity_id}>
+                      <button
+                        type="button"
+                        className={`entity-select-button ${selectedEntityId === entity.entity_id ? 'is-selected' : ''}`}
+                        onClick={() => selectEntity(entity.entity_id)}
+                      >
+                        <span className="entity-select-type">{entity.entity_type}</span>
+                        <span className="entity-select-id">{entity.entity_id}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="entity-empty">Waiting for stream entities...</p>
+            )}
+          </div>
         </aside>
       </main>
     </div>

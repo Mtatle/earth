@@ -1,6 +1,8 @@
 import { streamProtocolVersion, type StreamEvent } from '@earthly/shared';
 import { Router, type Response } from 'express';
+import type { RuntimeConfig } from '../config/env.js';
 import { serializeStreamEvent, summarizeZodIssues, validateStreamEvent } from '../streams/contract.js';
+import { createStreamRuntime } from '../streams/runtime.js';
 
 const HEARTBEAT_INTERVAL_MS = 10000;
 
@@ -11,6 +13,8 @@ export interface StreamLogger {
 
 export interface StreamRouterOptions {
   logger?: StreamLogger;
+  runtimeConfig?: RuntimeConfig;
+  now?: () => Date;
 }
 
 const defaultLogger: StreamLogger = {
@@ -26,6 +30,7 @@ export function createStreamRouter(options: StreamRouterOptions = {}) {
   const router = Router();
   const clients = new Set<Response>();
   const logger = options.logger ?? defaultLogger;
+  const now = options.now ?? (() => new Date());
 
   const broadcast = (event: StreamEvent): number => {
     const serializedEvent = serializeStreamEvent(event);
@@ -34,6 +39,14 @@ export function createStreamRouter(options: StreamRouterOptions = {}) {
     }
     return clients.size;
   };
+  const runtime = options.runtimeConfig
+    ? createStreamRuntime({
+        config: options.runtimeConfig,
+        logger,
+        broadcast,
+        now
+      })
+    : null;
 
   router.get('/stream', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
@@ -42,12 +55,15 @@ export function createStreamRouter(options: StreamRouterOptions = {}) {
     res.flushHeaders();
 
     clients.add(res);
+    if (clients.size === 1) {
+      runtime?.start();
+    }
 
-    const now = new Date().toISOString();
+    const timestamp = now().toISOString();
     const bootstrapEvent: StreamEvent = {
       event_type: 'bootstrap',
       protocol_version: streamProtocolVersion,
-      sent_at: now,
+      sent_at: timestamp,
       message: 'Earthly stream online'
     };
 
@@ -57,8 +73,8 @@ export function createStreamRouter(options: StreamRouterOptions = {}) {
       const heartbeatEvent: StreamEvent = {
         event_type: 'heartbeat',
         protocol_version: streamProtocolVersion,
-        sent_at: new Date().toISOString(),
-        status: 'ok'
+        sent_at: now().toISOString(),
+        status: runtime?.heartbeatStatus() ?? 'ok'
       };
       broadcast(heartbeatEvent);
     }, HEARTBEAT_INTERVAL_MS);
@@ -66,6 +82,9 @@ export function createStreamRouter(options: StreamRouterOptions = {}) {
     req.on('close', () => {
       clearInterval(interval);
       clients.delete(res);
+      if (clients.size === 0) {
+        runtime?.stop();
+      }
       res.end();
     });
   });

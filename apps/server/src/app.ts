@@ -11,7 +11,7 @@ export function createApp(config: RuntimeConfig) {
   app.use(express.json());
 
   app.use('/api', createHealthRouter(config));
-  app.use('/api', createStreamRouter());
+  app.use('/api', createStreamRouter({ runtimeConfig: config }));
 
   return app;
 }
