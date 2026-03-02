@@ -150,4 +150,38 @@ describe('App', () => {
 
     expect(screen.getByText(/stream stale/i)).toBeInTheDocument();
   });
+
+  it('renders streamed entities and shows details when selected', () => {
+    render(<App />);
+    const source = MockEventSource.instances.at(0);
+
+    if (!source) {
+      throw new Error('expected EventSource instance');
+    }
+
+    act(() => {
+      source.emit('entity_upsert', {
+        event_type: 'entity_upsert',
+        protocol_version: '1.0.0',
+        sent_at: '2026-03-02T00:00:00.000Z',
+        entities: [
+          {
+            entity_id: 'flight-abc',
+            entity_type: 'flight',
+            position: { lat: 30.2672, lon: -97.7431, alt: 10_345 },
+            source: 'OpenSky',
+            observed_at: '2026-03-02T00:00:00.000Z',
+            updated_at: '2026-03-02T00:00:00.000Z',
+            metadata: { callsign: 'EARTH1' }
+          }
+        ]
+      });
+    });
+
+    const entityButton = screen.getByRole('button', { name: /flight-abc/i });
+    fireEvent.click(entityButton);
+
+    expect(screen.getByText('FLIGHT · flight-abc')).toBeInTheDocument();
+    expect(screen.getByText('Source OpenSky')).toBeInTheDocument();
+  });
 });

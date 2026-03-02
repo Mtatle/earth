@@ -27,3 +27,11 @@ export const DEFAULT_STREAM_URL = 'http://localhost:4000/api/stream';
 export const STREAM_EVENT_BOOTSTRAP = 'bootstrap';
 
 export const STREAM_EVENT_HEARTBEAT = 'heartbeat';
+
+export const STREAM_EVENT_ENTITY_UPSERT = 'entity_upsert';
+
+export const STREAM_EVENT_ENTITY_SNAPSHOT = 'entity_snapshot';
+
+export const STREAM_EVENT_ENTITY_DELETE = 'entity_delete';
+
+export const STREAM_EVENT_ERROR = 'error';
