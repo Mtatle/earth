@@ -7,9 +7,9 @@ export default defineConfig({
     // Cesium ships worker modules that Vite's dep optimizer can mis-handle.
     // Excluding it prevents broken /.vite/deps/Workers/* lookups in dev.
     exclude: ['cesium'],
-    // Cesium depends on this CJS package via default import.
+    // Cesium depends on CJS packages via default imports.
     // Prebundling restores correct interop while cesium itself stays excluded.
-    include: ['mersenne-twister']
+    include: ['mersenne-twister', 'urijs']
   },
   server: {
     port: 5173,
