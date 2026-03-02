@@ -28,6 +28,26 @@ describe('camera-state helpers', () => {
     });
   });
 
+  it('falls back to boot camera values for non-finite input', () => {
+    const rawState: CameraState = {
+      longitude: Number.NaN,
+      latitude: Number.POSITIVE_INFINITY,
+      height: Number.NEGATIVE_INFINITY,
+      heading: Number.NaN,
+      pitch: Number.POSITIVE_INFINITY,
+      roll: Number.NaN
+    };
+
+    expect(sanitizeCameraState(rawState)).toEqual({
+      longitude: -23.4,
+      latitude: 19.1,
+      height: 16_500_000,
+      heading: 7,
+      pitch: -48,
+      roll: 0
+    });
+  });
+
   it('captures cartographic camera values in degrees', () => {
     const snapshot = captureCameraState({
       positionCartographic: {
@@ -37,8 +57,8 @@ describe('camera-state helpers', () => {
       },
       heading: Math.PI,
       pitch: -Math.PI / 6,
-        roll: Math.PI / 10
-      } as never);
+      roll: Math.PI / 10
+    } as never);
 
     expect(snapshot.longitude).toBe(90);
     expect(snapshot.latitude).toBe(-45);
@@ -59,5 +79,18 @@ describe('camera-state helpers', () => {
         roll: 0
       })
     ).toBe('45.00°, -38.12° @ 2450 km');
+  });
+
+  it('formats camera state using safe defaults for non-finite values', () => {
+    expect(
+      formatCameraState({
+        longitude: Number.NaN,
+        latitude: Number.POSITIVE_INFINITY,
+        height: Number.NEGATIVE_INFINITY,
+        heading: Number.NaN,
+        pitch: Number.NaN,
+        roll: Number.NaN
+      })
+    ).toBe('19.10°, -23.40° @ 16500 km');
   });
 });

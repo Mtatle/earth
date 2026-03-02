@@ -83,13 +83,20 @@ export function normalizeLongitude(longitude: number): number {
 }
 
 export function sanitizeCameraState(state: CameraState): CameraState {
+  const safeLongitude = toFiniteNumber(state.longitude, DEFAULT_BOOT_CAMERA.longitude);
+  const safeLatitude = toFiniteNumber(state.latitude, DEFAULT_BOOT_CAMERA.latitude);
+  const safeHeight = toFiniteNumber(state.height, DEFAULT_BOOT_CAMERA.height);
+  const safeHeading = toFiniteNumber(state.heading, DEFAULT_BOOT_CAMERA.heading);
+  const safePitch = toFiniteNumber(state.pitch, DEFAULT_BOOT_CAMERA.pitch);
+  const safeRoll = toFiniteNumber(state.roll, DEFAULT_BOOT_CAMERA.roll);
+
   return {
-    longitude: normalizeLongitude(state.longitude),
-    latitude: clamp(state.latitude, MIN_LATITUDE, MAX_LATITUDE),
-    height: Math.max(MIN_HEIGHT, state.height),
-    heading: normalizeRotation(state.heading),
-    pitch: clamp(state.pitch, MIN_PITCH, MAX_PITCH),
-    roll: normalizeRotation(state.roll)
+    longitude: normalizeLongitude(safeLongitude),
+    latitude: clamp(safeLatitude, MIN_LATITUDE, MAX_LATITUDE),
+    height: Math.max(MIN_HEIGHT, safeHeight),
+    heading: normalizeRotation(safeHeading),
+    pitch: clamp(safePitch, MIN_PITCH, MAX_PITCH),
+    roll: normalizeRotation(safeRoll)
   };
 }
 
@@ -105,7 +112,8 @@ export function captureCameraState(camera: Pick<Camera, 'positionCartographic' |
 }
 
 export function formatCameraState(state: CameraState): string {
-  return `${state.latitude.toFixed(2)}°, ${state.longitude.toFixed(2)}° @ ${Math.round(state.height / 1000)} km`;
+  const safeState = sanitizeCameraState(state);
+  return `${safeState.latitude.toFixed(2)}°, ${safeState.longitude.toFixed(2)}° @ ${Math.round(safeState.height / 1000)} km`;
 }
 
 export async function flyToCameraState(
@@ -135,6 +143,10 @@ export async function flyToCameraState(
 function normalizeRotation(value: number): number {
   const wrapped = ((value % 360) + 360) % 360;
   return Number(wrapped.toFixed(3));
+}
+
+function toFiniteNumber(value: number, fallback: number): number {
+  return Number.isFinite(value) ? value : fallback;
 }
 
 function clamp(value: number, min: number, max: number): number {
