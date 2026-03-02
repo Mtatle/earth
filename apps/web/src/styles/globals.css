@@ -1,13 +1,51 @@
 :root {
-  --bg: #04070d;
-  --surface: rgba(12, 19, 34, 0.78);
-  --surface-border: rgba(109, 149, 197, 0.22);
-  --text: #d7e6ff;
-  --text-muted: #90a9c9;
-  --accent: #3bc9db;
+  --hud-bg: #040a12;
+  --hud-surface: rgba(7, 18, 34, 0.78);
+  --hud-border: rgba(102, 182, 255, 0.34);
+  --hud-accent: #3bc9db;
+  --hud-text: #d9ebff;
+  --hud-muted: #8aa8cc;
+  --hud-glow: rgba(59, 201, 219, 0.32);
+
+  --bg: var(--hud-bg);
+  --surface: var(--hud-surface);
+  --surface-border: var(--hud-border);
+  --text: var(--hud-text);
+  --text-muted: var(--hud-muted);
+  --accent: var(--hud-accent);
   --accent-warn: #f6ad55;
   --accent-error: #f87171;
   --accent-off: #8ca3c1;
+}
+
+:root[data-hud-preset='crt'] {
+  --hud-bg: #040a12;
+  --hud-surface: rgba(7, 18, 34, 0.78);
+  --hud-border: rgba(102, 182, 255, 0.34);
+  --hud-accent: #3bc9db;
+  --hud-text: #d9ebff;
+  --hud-muted: #8aa8cc;
+  --hud-glow: rgba(59, 201, 219, 0.32);
+}
+
+:root[data-hud-preset='nvg'] {
+  --hud-bg: #050b06;
+  --hud-surface: rgba(13, 26, 16, 0.78);
+  --hud-border: rgba(116, 228, 135, 0.34);
+  --hud-accent: #74e487;
+  --hud-text: #d8f6db;
+  --hud-muted: #8cb998;
+  --hud-glow: rgba(116, 228, 135, 0.3);
+}
+
+:root[data-hud-preset='flir'] {
+  --hud-bg: #13080a;
+  --hud-surface: rgba(38, 14, 20, 0.8);
+  --hud-border: rgba(255, 169, 92, 0.36);
+  --hud-accent: #ff9b4a;
+  --hud-text: #ffe7d1;
+  --hud-muted: #d4b394;
+  --hud-glow: rgba(255, 155, 74, 0.33);
 }
 
 * {
@@ -19,8 +57,8 @@ body {
   font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
   color: var(--text);
   background:
-    radial-gradient(1200px 500px at 85% 10%, rgba(59, 201, 219, 0.14), transparent),
-    radial-gradient(900px 400px at 5% 100%, rgba(98, 137, 255, 0.18), transparent),
+    radial-gradient(1200px 500px at 85% 10%, var(--hud-glow), transparent),
+    radial-gradient(900px 400px at 5% 100%, var(--hud-border), transparent),
     var(--bg);
 }
 
@@ -489,6 +527,198 @@ ul {
   color: var(--text-muted);
 }
 
+.hud-card {
+  border: 1px solid var(--hud-border);
+  border-radius: 12px;
+  background:
+    linear-gradient(160deg, rgba(7, 17, 31, 0.84), rgba(6, 13, 24, 0.74)),
+    var(--hud-surface);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0 24px -16px var(--hud-glow);
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hud-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hud-card-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--hud-text);
+}
+
+.hud-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.hud-preset-button {
+  border: 1px solid color-mix(in srgb, var(--hud-border) 75%, transparent);
+  border-radius: 10px;
+  background: rgba(6, 15, 28, 0.6);
+  color: var(--hud-text);
+  font: inherit;
+  text-align: left;
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.hud-preset-button:hover {
+  border-color: var(--hud-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hud-accent) 34%, transparent);
+}
+
+.hud-preset-button.is-active {
+  border-color: var(--hud-accent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hud-accent) 38%, transparent),
+    0 0 20px -14px var(--hud-glow);
+  transform: translateY(-1px);
+}
+
+.hud-preset-button:focus-visible {
+  outline: 2px solid var(--hud-accent);
+  outline-offset: 2px;
+}
+
+.hud-preset-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.hud-preset-tagline {
+  font-size: 0.7rem;
+  color: var(--hud-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hud-preset-description {
+  font-size: 0.7rem;
+  color: var(--hud-muted);
+}
+
+.hud-status-list,
+.hud-metric-grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hud-status-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.hud-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--hud-border) 70%, transparent);
+  border-radius: 9px;
+  padding: 0.35rem 0.45rem;
+  background: rgba(6, 15, 28, 0.52);
+}
+
+.hud-status-label {
+  font-size: 0.68rem;
+  color: var(--hud-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hud-status-value {
+  font-size: 0.74rem;
+  color: var(--hud-text);
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+.hud-status-item.tone-live .hud-status-value {
+  color: var(--hud-accent);
+}
+
+.hud-status-item.tone-stale .hud-status-value {
+  color: var(--accent-warn);
+}
+
+.hud-status-item.tone-error .hud-status-value {
+  color: var(--accent-error);
+}
+
+.hud-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.hud-metric-card {
+  border: 1px solid color-mix(in srgb, var(--hud-border) 70%, transparent);
+  border-radius: 10px;
+  background: rgba(5, 13, 24, 0.55);
+  padding: 0.45rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hud-metric-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hud-muted);
+}
+
+.hud-metric-value {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: var(--hud-text);
+}
+
+.hud-state-notice {
+  border: 1px solid color-mix(in srgb, var(--hud-border) 78%, transparent);
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--hud-glow) 22%, transparent), transparent),
+    rgba(7, 14, 26, 0.58);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hud-state-title {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--hud-text);
+}
+
+.hud-state-body {
+  margin: 0;
+  font-size: 0.71rem;
+  color: var(--hud-muted);
+}
+
+.hud-state-error {
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+.hud-state-error .hud-state-title {
+  color: var(--accent-error);
+}
+
 @media (max-width: 1024px) {
   .content {
     grid-template-columns: 1fr;
@@ -504,6 +734,11 @@ ul {
   }
 
   .preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hud-preset-grid,
+  .hud-metric-grid {
     grid-template-columns: 1fr;
   }
 }
