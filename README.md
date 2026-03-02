@@ -17,6 +17,25 @@ npm run dev
 
 Web defaults to `http://localhost:5173` and server defaults to `http://localhost:4000`.
 
+## Environment
+Create a local env file from the template before running the server:
+
+```bash
+cp .env.example .env
+```
+
+Server env keys (from `.env.example`):
+- `PORT`
+- `STRICT_ADAPTER_KEYS`
+- `OPENSKY_USERNAME`
+- `OPENSKY_PASSWORD`
+- `ADSBX_API_KEY`
+- `ENABLE_LAYER_SATELLITES`
+- `ENABLE_LAYER_FLIGHTS`
+- `ENABLE_LAYER_EARTHQUAKES`
+
+Strict mode note: with `STRICT_ADAPTER_KEYS=false` (default), flights run in demo mode and self-disable when credentials are missing; with `STRICT_ADAPTER_KEYS=true`, startup fails fast if `ENABLE_LAYER_FLIGHTS=true` and no flight credentials are provided.
+
 ## Workspace Commands
 ```bash
 npm run dev
