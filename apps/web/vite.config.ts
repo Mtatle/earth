@@ -7,9 +7,30 @@ export default defineConfig({
     // Cesium ships worker modules that Vite's dep optimizer can mis-handle.
     // Excluding it prevents broken /.vite/deps/Workers/* lookups in dev.
     exclude: ['cesium'],
-    // Cesium depends on CJS packages via default imports.
-    // Prebundling restores correct interop while cesium itself stays excluded.
-    include: ['mersenne-twister', 'urijs']
+    // Cesium depends on several CommonJS packages via default imports.
+    // Prebundling these restores interop while keeping cesium itself excluded.
+    include: [
+      'autolinker',
+      'bitmap-sdf',
+      'dompurify',
+      'draco3d',
+      'earcut',
+      'grapheme-splitter',
+      'jsep',
+      'kdbush',
+      'ktx-parse',
+      'lerc',
+      'mersenne-twister',
+      'meshoptimizer',
+      'pako',
+      'protobufjs',
+      'rbush',
+      'topojson-client',
+      'urijs',
+      '@tweenjs/tween.js',
+      '@zip.js/zip.js',
+      'nosleep.js'
+    ]
   },
   server: {
     port: 5173,
