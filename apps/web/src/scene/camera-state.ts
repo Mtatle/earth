@@ -32,11 +32,11 @@ export type FlyToOptions = {
 };
 
 export const DEFAULT_BOOT_CAMERA: CameraState = {
-  longitude: -23.4,
-  latitude: 19.1,
-  height: 16_500_000,
-  heading: 7,
-  pitch: -48,
+  longitude: 0,
+  latitude: 12,
+  height: 17_500_000,
+  heading: 0,
+  pitch: -88,
   roll: 0
 };
 

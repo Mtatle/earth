@@ -39,11 +39,11 @@ describe('camera-state helpers', () => {
     };
 
     expect(sanitizeCameraState(rawState)).toEqual({
-      longitude: -23.4,
-      latitude: 19.1,
-      height: 16_500_000,
-      heading: 7,
-      pitch: -48,
+      longitude: 0,
+      latitude: 12,
+      height: 17_500_000,
+      heading: 0,
+      pitch: -88,
       roll: 0
     });
   });
@@ -91,6 +91,6 @@ describe('camera-state helpers', () => {
         pitch: Number.NaN,
         roll: Number.NaN
       })
-    ).toBe('19.10°, -23.40° @ 16500 km');
+    ).toBe('12.00°, 0.00° @ 17500 km');
   });
 });
