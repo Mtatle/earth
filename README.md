@@ -38,6 +38,7 @@ npm run test:all
 - `docs/AGENT_GUIDE.md` (tracked agent execution contract)
 - `docs/TASKS_V0_1.md` (tracked parallel task board)
 - `docs/PARALLEL_AGENT_PLAYBOOK.md`
+- `docs/MANAGER_RUNBOOK.md`
 - `docs/PRD-v0.1.md`
 - `docs/PROJECT_STRUCTURE.md`
 - `docs/TESTING_STACK.md`
@@ -45,3 +46,8 @@ npm run test:all
 Local-only mirrors:
 - `AGENT.md` (ignored)
 - `TASKS.md` (ignored)
+
+## Manager Session Helper
+```bash
+./scripts/manager-start.sh
+```
