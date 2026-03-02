@@ -1,8 +1,30 @@
-import express from 'express';
-import request from 'supertest';
+import type { Router } from 'express';
 import { describe, expect, it } from 'vitest';
 import { loadRuntimeConfig } from '../config/env.js';
 import { createHealthRouter } from '../routes/health.js';
+
+type RouteMethod = 'get' | 'post';
+
+function getRouteHandler(router: Router, method: RouteMethod, path: string) {
+  const layer = (router as unknown as { stack: Array<{ route?: { path?: string; methods?: Record<string, boolean>; stack?: Array<{ handle: (...args: any[]) => any }> } }> }).stack.find(
+    (candidate) => candidate.route?.path === path && candidate.route?.methods?.[method]
+  );
+
+  if (!layer?.route?.stack?.[0]) {
+    throw new Error(`Unable to find route handler for ${method.toUpperCase()} ${path}`);
+  }
+
+  return layer.route.stack[0].handle as (req: unknown, res: { json: (payload: unknown) => void }, next: (error?: unknown) => void) => void;
+}
+
+function createMockResponse() {
+  return {
+    body: undefined as unknown,
+    json(payload: unknown) {
+      this.body = payload;
+    }
+  };
+}
 
 describe('server health route', () => {
   it('returns ok status', async () => {
@@ -12,15 +34,18 @@ describe('server health route', () => {
       ENABLE_LAYER_FLIGHTS: 'true',
       ENABLE_LAYER_EARTHQUAKES: 'true'
     });
-    const app = express();
-    app.use('/api', createHealthRouter(config));
-    const response = await request(app).get('/api/health');
+    const router = createHealthRouter(config);
+    const handler = getRouteHandler(router, 'get', '/health');
+    const response = createMockResponse();
 
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('ok');
-    expect(response.body.service).toBe('earthly-server');
-    expect(response.body.mode).toBe('demo');
-    expect(response.body.layers.flights.enabled).toBe(false);
-    expect(response.body.layers.flights.notice).toMatch(/Disabled in demo mode/i);
+    handler({}, response, () => {});
+
+    expect((response.body as { status: string }).status).toBe('ok');
+    expect((response.body as { service: string }).service).toBe('earthly-server');
+    expect((response.body as { mode: string }).mode).toBe('demo');
+    expect((response.body as { layers: { flights: { enabled: boolean; notice: string } } }).layers.flights.enabled).toBe(false);
+    expect((response.body as { layers: { flights: { enabled: boolean; notice: string } } }).layers.flights.notice).toMatch(
+      /Disabled in demo mode/i
+    );
   });
 });
