@@ -20,7 +20,7 @@ describe('scene settings store', () => {
       buildingsEnabled: false,
       atmosphereEnabled: true,
       fogEnabled: false,
-      qualityProfile: 'high'
+      qualityProfile: 'premium'
     });
 
     expect(next).toEqual({
@@ -28,7 +28,7 @@ describe('scene settings store', () => {
       buildingsEnabled: false,
       atmosphereEnabled: true,
       fogEnabled: false,
-      qualityProfile: 'high'
+      qualityProfile: 'premium'
     });
 
     const persistedRaw = storage.getItem(SCENE_SETTINGS_STORAGE_KEY);
@@ -54,12 +54,12 @@ describe('scene settings store', () => {
       buildingsEnabled: true,
       atmosphereEnabled: false,
       fogEnabled: true,
-      qualityProfile: 'low'
+      qualityProfile: 'performance'
     });
 
     const patched = store.patch({
       fogEnabled: false,
-      qualityProfile: 'ultra'
+      qualityProfile: 'premium'
     });
 
     expect(patched).toEqual({
@@ -67,7 +67,7 @@ describe('scene settings store', () => {
       buildingsEnabled: true,
       atmosphereEnabled: false,
       fogEnabled: false,
-      qualityProfile: 'ultra'
+      qualityProfile: 'premium'
     });
   });
 
@@ -95,7 +95,7 @@ describe('scene settings store', () => {
       buildingsEnabled: true,
       atmosphereEnabled: false,
       fogEnabled: true,
-      qualityProfile: 'high'
+      qualityProfile: 'premium'
     });
   });
 
@@ -141,7 +141,7 @@ describe('scene settings store', () => {
 
     store.patch({
       terrainEnabled: false,
-      qualityProfile: 'low'
+      qualityProfile: 'performance'
     });
 
     expect(storage.getItem(SCENE_SETTINGS_STORAGE_KEY)).not.toBeNull();
@@ -158,7 +158,7 @@ describe('scene settings store', () => {
 
     const snapshot = store.getState();
     snapshot.terrainEnabled = false;
-    snapshot.qualityProfile = 'low';
+    snapshot.qualityProfile = 'performance';
 
     expect(store.getState()).toEqual(defaultSceneSettingsState());
   });

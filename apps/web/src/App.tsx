@@ -12,9 +12,15 @@ import {
 } from './features/hud';
 import { formatUpdatedAt, useLayerManager } from './features/layer-manager';
 import { createScenePresetStore, type HudStyleMode, type ScenePreset } from './features/scene-presets';
+import { createSceneSettingsStore, QUALITY_PROFILES, type QualityProfile, type SceneSettingsState } from './features/scene-settings';
 import { CesiumGlobe } from './scene/CesiumGlobe';
 
 const LAYER_IDS = ['satellites', 'flights', 'earthquakes'] as const;
+const QUALITY_PROFILE_LABELS: Record<QualityProfile, string> = {
+  performance: 'Performance',
+  balanced: 'Balanced',
+  premium: 'Premium'
+};
 
 function toHudStyleMode(presetId: HudPresetId): HudStyleMode {
   if (presetId === 'nvg') {
@@ -52,7 +58,9 @@ function countEnabledLayers(preset: ScenePreset): number {
 
 export function App() {
   const scenePresetStore = useMemo(() => createScenePresetStore(), []);
+  const sceneSettingsStore = useMemo(() => createSceneSettingsStore(), []);
   const [scenePresets, setScenePresets] = useState<ScenePreset[]>(() => scenePresetStore.list());
+  const [sceneSettings, setSceneSettings] = useState<SceneSettingsState>(() => sceneSettingsStore.getState());
   const { presetId, preset, setPresetId } = useHudPreset({ applyToDocument: true });
   const {
     entities,
@@ -126,6 +134,14 @@ export function App() {
     setPresetId(toHudPresetId(presetToApply.state.styleMode));
   };
 
+  const patchSceneSettings = (patch: Partial<SceneSettingsState>) => {
+    setSceneSettings(sceneSettingsStore.patch(patch));
+  };
+
+  const resetSceneSettings = () => {
+    setSceneSettings(sceneSettingsStore.reset());
+  };
+
   return (
     <div className="shell">
       <header className="topbar">
@@ -164,6 +180,64 @@ export function App() {
 
           <HudPresetSelector activePresetId={presetId} onSelectPreset={setPresetId} />
 
+          <section className="hud-card" aria-label="Scene runtime settings">
+            <div className="hud-card-header">
+              <p className="kicker">Scene Runtime</p>
+              <h3>3D Fidelity</h3>
+            </div>
+            <div className="scene-settings-grid" role="group" aria-label="Scene runtime toggles">
+              <label className="scene-setting-row">
+                <input
+                  type="checkbox"
+                  checked={sceneSettings.terrainEnabled}
+                  onChange={(event) => patchSceneSettings({ terrainEnabled: event.target.checked })}
+                />
+                <span>Terrain</span>
+              </label>
+              <label className="scene-setting-row">
+                <input
+                  type="checkbox"
+                  checked={sceneSettings.buildingsEnabled}
+                  onChange={(event) => patchSceneSettings({ buildingsEnabled: event.target.checked })}
+                />
+                <span>Buildings</span>
+              </label>
+              <label className="scene-setting-row">
+                <input
+                  type="checkbox"
+                  checked={sceneSettings.atmosphereEnabled}
+                  onChange={(event) => patchSceneSettings({ atmosphereEnabled: event.target.checked })}
+                />
+                <span>Atmosphere</span>
+              </label>
+              <label className="scene-setting-row">
+                <input
+                  type="checkbox"
+                  checked={sceneSettings.fogEnabled}
+                  onChange={(event) => patchSceneSettings({ fogEnabled: event.target.checked })}
+                />
+                <span>Fog</span>
+              </label>
+            </div>
+            <label className="scene-setting-select">
+              <span className="scene-setting-label">Quality Profile</span>
+              <select
+                value={sceneSettings.qualityProfile}
+                onChange={(event) => patchSceneSettings({ qualityProfile: event.target.value as QualityProfile })}
+              >
+                {QUALITY_PROFILES.map((profile) => (
+                  <option key={profile} value={profile}>
+                    {QUALITY_PROFILE_LABELS[profile]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="hud-preset-button" onClick={resetSceneSettings}>
+              <span className="hud-preset-title">Reset Scene Runtime</span>
+              <span className="hud-preset-description">Restore default terrain, atmosphere, and quality settings.</span>
+            </button>
+          </section>
+
           <section className="hud-card" aria-label="Scene presets">
             <div className="hud-card-header">
               <p className="kicker">Scene</p>
@@ -201,7 +275,7 @@ export function App() {
             </p>
             <p>Camera presets provide smooth global-to-regional transitions.</p>
           </div>
-          <CesiumGlobe />
+          <CesiumGlobe sceneSettings={sceneSettings} />
         </section>
 
         <aside className="panel entity-panel">

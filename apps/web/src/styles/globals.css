@@ -610,6 +610,56 @@ ul {
   color: var(--hud-muted);
 }
 
+.scene-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.scene-setting-row {
+  border: 1px solid color-mix(in srgb, var(--hud-border) 74%, transparent);
+  border-radius: 9px;
+  background: rgba(6, 15, 28, 0.56);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--hud-text);
+}
+
+.scene-setting-row input {
+  accent-color: var(--hud-accent);
+}
+
+.scene-setting-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.scene-setting-label {
+  font-size: 0.67rem;
+  color: var(--hud-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.scene-setting-select select {
+  border: 1px solid color-mix(in srgb, var(--hud-border) 75%, transparent);
+  border-radius: 9px;
+  background: rgba(6, 15, 28, 0.65);
+  color: var(--hud-text);
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.42rem 0.5rem;
+}
+
+.scene-setting-select select:focus-visible {
+  outline: 2px solid var(--hud-accent);
+  outline-offset: 1px;
+}
+
 .hud-status-list,
 .hud-metric-grid {
   margin: 0;
@@ -738,7 +788,8 @@ ul {
   }
 
   .hud-preset-grid,
-  .hud-metric-grid {
+  .hud-metric-grid,
+  .scene-settings-grid {
     grid-template-columns: 1fr;
   }
 }

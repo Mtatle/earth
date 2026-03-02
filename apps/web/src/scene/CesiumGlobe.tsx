@@ -2,13 +2,37 @@ import { useEffect, useRef, useState } from 'react';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import type { Viewer } from 'cesium';
 import { CAMERA_PRESETS, captureCameraState, DEFAULT_BOOT_CAMERA, flyToCameraState, formatCameraState } from './camera-state';
+import { enforceCameraInteractionConstraints, planNearGroundTransition } from './camera-interaction';
 import { loadCesium } from './load-cesium';
+import { applySceneQualityProfile, type SceneQualityProfileId } from './quality-profile';
+import { attachTerrainAndBuildings } from './terrain-buildings';
 
 type GlobeStatus = 'loading' | 'ready' | 'error' | 'unsupported';
 
-export function CesiumGlobe() {
+export type GlobeSceneSettings = {
+  terrainEnabled: boolean;
+  buildingsEnabled: boolean;
+  atmosphereEnabled: boolean;
+  fogEnabled: boolean;
+  qualityProfile: SceneQualityProfileId;
+};
+
+const DEFAULT_SCENE_SETTINGS: GlobeSceneSettings = {
+  terrainEnabled: true,
+  buildingsEnabled: true,
+  atmosphereEnabled: true,
+  fogEnabled: true,
+  qualityProfile: 'balanced'
+};
+
+type CesiumGlobeProps = {
+  sceneSettings?: GlobeSceneSettings;
+};
+
+export function CesiumGlobe({ sceneSettings = DEFAULT_SCENE_SETTINGS }: CesiumGlobeProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const terrainCleanupRef = useRef<() => void>(() => undefined);
   const [status, setStatus] = useState<GlobeStatus>('loading');
   const [cameraSnapshot, setCameraSnapshot] = useState<string>('Initializing camera...');
 
@@ -60,7 +84,10 @@ export function CesiumGlobe() {
         }
         viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
-        await flyToCameraState(viewer, DEFAULT_BOOT_CAMERA, { duration: 2.4, maximumHeight: 18_000_000 });
+        await flyToCameraState(viewer, enforceCameraInteractionConstraints(DEFAULT_BOOT_CAMERA), {
+          duration: 2.4,
+          maximumHeight: 18_000_000
+        });
         if (canceled) {
           return;
         }
@@ -87,6 +114,8 @@ export function CesiumGlobe() {
     return () => {
       canceled = true;
       detachCameraListener?.();
+      terrainCleanupRef.current();
+      terrainCleanupRef.current = () => undefined;
       const viewer = viewerRef.current;
       if (viewer && !viewer.isDestroyed()) {
         viewer.destroy();
@@ -95,13 +124,87 @@ export function CesiumGlobe() {
     };
   }, []);
 
+  useEffect(() => {
+    if (status !== 'ready') {
+      return;
+    }
+
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) {
+      return;
+    }
+
+    let canceled = false;
+    terrainCleanupRef.current();
+    terrainCleanupRef.current = () => undefined;
+
+    const applyRuntimeSettings = async () => {
+      applySceneQualityProfile(viewer, sceneSettings.qualityProfile, {
+        devicePixelRatio: window.devicePixelRatio || 1
+      });
+      if (viewer.scene.skyAtmosphere) {
+        viewer.scene.skyAtmosphere.show = sceneSettings.atmosphereEnabled;
+      }
+      if (viewer.scene.fog) {
+        viewer.scene.fog.enabled = sceneSettings.fogEnabled;
+      }
+
+      const terrainResult = await attachTerrainAndBuildings(viewer, {
+        terrain: {
+          enabled: sceneSettings.terrainEnabled
+        },
+        buildings: {
+          enabled: sceneSettings.buildingsEnabled
+        }
+      });
+
+      if (canceled) {
+        terrainResult.cleanup();
+        return;
+      }
+
+      terrainCleanupRef.current = terrainResult.cleanup;
+      viewer.scene.requestRender?.();
+    };
+
+    void applyRuntimeSettings();
+
+    return () => {
+      canceled = true;
+    };
+  }, [
+    sceneSettings.atmosphereEnabled,
+    sceneSettings.buildingsEnabled,
+    sceneSettings.fogEnabled,
+    sceneSettings.qualityProfile,
+    sceneSettings.terrainEnabled,
+    status
+  ]);
+
   const runPreset = async (presetId: string) => {
     const preset = CAMERA_PRESETS.find((item) => item.id === presetId);
     const viewer = viewerRef.current;
-    if (!preset || !viewer) {
+    if (!preset || !viewer || viewer.isDestroyed()) {
       return;
     }
-    await flyToCameraState(viewer, preset.state, { duration: preset.duration });
+
+    const fromState = captureCameraState(viewer.camera);
+    const transitionSteps = planNearGroundTransition(fromState, preset.state);
+
+    if (transitionSteps.length === 1) {
+      const finalStep = transitionSteps[0];
+      if (!finalStep) {
+        return;
+      }
+      const constrainedState = enforceCameraInteractionConstraints(finalStep.state);
+      await flyToCameraState(viewer, constrainedState, { duration: preset.duration });
+      return;
+    }
+
+    for (const step of transitionSteps) {
+      const constrainedStepState = enforceCameraInteractionConstraints(step.state);
+      await flyToCameraState(viewer, constrainedStepState, { duration: step.duration });
+    }
   };
 
   return (

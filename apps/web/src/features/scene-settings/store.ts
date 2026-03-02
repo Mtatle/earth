@@ -195,8 +195,14 @@ function normalizeQualityProfile(value: unknown, fallback: QualityProfile): Qual
   }
 
   const normalized = value.trim().toLowerCase();
+  const canonical =
+    normalized === 'low'
+      ? 'performance'
+      : normalized === 'high' || normalized === 'ultra'
+        ? 'premium'
+        : normalized;
 
-  return (QUALITY_PROFILES as readonly string[]).includes(normalized) ? (normalized as QualityProfile) : fallback;
+  return (QUALITY_PROFILES as readonly string[]).includes(canonical) ? (canonical as QualityProfile) : fallback;
 }
 
 function cloneState(state: SceneSettingsState): SceneSettingsState {

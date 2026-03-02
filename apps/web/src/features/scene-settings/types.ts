@@ -1,7 +1,7 @@
 export const SCENE_SETTINGS_STORAGE_KEY = 'earthly.scene-settings.v1';
 export const SCENE_SETTINGS_STORAGE_VERSION = 1;
 
-export const QUALITY_PROFILES = ['low', 'balanced', 'high', 'ultra'] as const;
+export const QUALITY_PROFILES = ['performance', 'balanced', 'premium'] as const;
 export type QualityProfile = (typeof QUALITY_PROFILES)[number];
 
 export type SceneSettingsState = {
